@@ -7,6 +7,13 @@ interface IGame {
   timer: number;
   reproductionTime: number;
   gameCondtition: boolean;
+  gridContainer: HTMLElement;
+  table: HTMLTableElement;
+  startButton: HTMLElement;
+  clearButton: HTMLElement;
+  xValue: HTMLInputElement;
+  yValue: HTMLInputElement;
+  speedSelect: HTMLElement;
   initializeGrids: () => void;
   resetGrids: () => void;
   copyAndResetGrid: () => void;
@@ -41,6 +48,20 @@ export class Game {
   nextGrid = new Array(this.rows);
 
   gameCondtition = false;
+
+  gridContainer = Object.create(HTMLElement.prototype, {});
+
+  startButton = Object.create(HTMLElement.prototype, {});
+
+  clearButton = Object.create(HTMLElement.prototype, {});
+
+  xValue = Object.create(HTMLElement.prototype, {});
+
+  yValue = Object.create(HTMLElement.prototype, {});
+
+  speedSelect = Object.create(HTMLElement.prototype, {});
+
+  table = Object.create(HTMLTableElement.prototype, {});
 
   initializeGrids() {
     for (let i = 0; i < this.rows; i++) {
@@ -78,13 +99,13 @@ export class Game {
 
   createTable() {
     let result = false;
-    const gridContainer = document.getElementById(
+    this.gridContainer = document.getElementById(
       "gridContainer"
     ) as HTMLElement;
-    if (!gridContainer) {
-      console.error("Problem: No div for the drid table!");
+    if (!this.gridContainer) {
+      console.error("Нет контейнера для поля игры");
     }
-    const table = document.createElement("table") as HTMLTableElement;
+    this.table = document.createElement("table") as HTMLTableElement;
 
     for (let i = 0; i < this.rows; i++) {
       const tr = document.createElement("tr");
@@ -100,9 +121,9 @@ export class Game {
         });
         tr.appendChild(cell);
       }
-      table.appendChild(tr);
+      this.table.appendChild(tr);
     }
-    gridContainer.appendChild(table);
+    this.gridContainer.appendChild(this.table);
     result = true;
     return result;
   }
@@ -120,6 +141,7 @@ export class Game {
       e.setAttribute("class", "live");
       this.grid[row][col] = 1;
     }
+    this.gameCondtition = true;
   }
 
   updateView(gridApp: number[][]) {
@@ -142,37 +164,40 @@ export class Game {
   }
 
   setupControlButtons() {
-    const startButton = document.getElementById("start") as HTMLElement;
+    this.startButton = document.getElementById("start") as HTMLElement;
 
-    startButton.addEventListener("click", () => {
-      this.startButtonHandler(startButton);
+    this.startButton.addEventListener("click", () => {
+      this.startButtonHandler(this.startButton);
     });
 
-    const clearButton = document.getElementById("clear") as HTMLElement;
+    this.clearButton = document.getElementById("clear") as HTMLElement;
 
-    clearButton.addEventListener("click", (e) => {
+    this.clearButton.addEventListener("click", () => {
       this.clearButtonHandler();
     });
 
     const randomButton = document.getElementById("random") as HTMLElement;
 
-    randomButton.addEventListener("click", (e) => {
+    randomButton.addEventListener("click", () => {
       this.randomButtonHandler();
     });
-    const speedSelect = document.getElementById("speed") as HTMLElement;
+    this.speedSelect = document.getElementById("speed") as HTMLElement;
     let listItem = document.createElement("option") as HTMLElement;
     listItem.innerText = "x1";
-    speedSelect.append(listItem);
+    this.speedSelect.append(listItem);
     listItem = document.createElement("option") as HTMLElement;
     listItem.innerText = "x2";
-    speedSelect.append(listItem);
+    this.speedSelect.append(listItem);
     listItem = document.createElement("option") as HTMLElement;
     listItem.innerText = "x4";
-    speedSelect.append(listItem);
-
-    speedSelect.addEventListener("change", (e) => {
+    this.speedSelect.append(listItem);
+    this.speedSelect.addEventListener("change", (e: Event) => {
       this.speedHandler(e.target as HTMLSelectElement);
     });
+    this.xValue = document.getElementById("x-ax") as HTMLInputElement;
+    this.yValue = document.getElementById("y-ax") as HTMLInputElement;
+    this.xValue.value = this.rows.toString();
+    this.yValue.value = this.cols.toString();
   }
 
   randomButtonHandler() {
@@ -194,41 +219,73 @@ export class Game {
   }
 
   clearButtonHandler() {
-    const xValue = document.getElementById("x-ax") as HTMLInputElement;
-    const yValue = document.getElementById("y-ax") as HTMLInputElement;
+    console.clear();
+    if (this.xValue.value !== undefined && this.xValue.value !== "") {
+      if (this.yValue.value !== undefined && this.yValue.value !== "") {
+        if (this.playing === true) {
+          this.playing = false;
+          const newRows = Number(this.xValue.value);
+          const newCols = Number(this.yValue.value);
 
-    if (xValue.value !== undefined && xValue.value !== "") {
-      if (yValue.value !== undefined && yValue.value !== "") {
-        this.playing = false;
-        const startButton = document.getElementById("start") as HTMLElement;
-        startButton.innerHTML = "Старт";
-        clearTimeout(this.timer);
+          const newGrid = new Array(newRows);
+          const newNextGrid = new Array(newRows);
+          for (let i = 0; i < newRows; i++) {
+            newGrid[i] = new Array(newCols);
+            newNextGrid[i] = new Array(newCols);
+          }
 
-        const cellsList = document.getElementsByClassName("live");
+          for (let i = 0; i < newRows; i++) {
+            for (let j = 0; j < newCols; j++) {
+              if (i < this.rows)
+                if (j < this.cols) {
+                  console.log(i, j);
+                  newGrid[i][j] = this.grid[i][j];
+                  newNextGrid[i][j] = this.grid[i][j];
+                } else {
+                  newGrid[i][j] = 0;
+                  newNextGrid[i][j] = 0;
+                }
+            }
+          }
+          this.rows = newRows;
+          this.cols = newCols;
+          this.grid = newGrid;
+          this.nextGrid = newNextGrid;
 
-        const cells = [];
-        for (let i = 0; i < cellsList.length; i++) {
-          cells.push(cellsList[i]);
+          this.gridContainer.innerHTML = "";
+          this.createTable();
+          this.updateView(this.grid);
+          this.playing = true;
+        } else {
+          this.playing = false;
+          // const startButton = document.getElementById("start") as HTMLElement;
+          this.startButton.innerHTML = "Старт";
+          clearTimeout(this.timer);
+
+          const cellsList = document.getElementsByClassName("live");
+
+          const cells = [];
+          for (let i = 0; i < cellsList.length; i++) {
+            cells.push(cellsList[i]);
+          }
+
+          for (let i = 0; i < cells.length; i++) {
+            cells[i].setAttribute("class", "dead");
+          }
+          this.resetGrids();
+          this.rows = Number(this.xValue.value);
+          this.cols = Number(this.yValue.value);
+
+          this.gridContainer.innerHTML = "";
+
+          this.grid = new Array(this.rows);
+
+          this.nextGrid = new Array(this.rows);
+
+          this.createTable();
+          this.initializeGrids();
+          this.resetGrids();
         }
-
-        for (let i = 0; i < cells.length; i++) {
-          cells[i].setAttribute("class", "dead");
-        }
-        this.resetGrids();
-        this.rows = Number(xValue.value);
-        this.cols = Number(yValue.value);
-        const gridContainer = document.getElementById(
-          "gridContainer"
-        ) as HTMLElement;
-        gridContainer.innerHTML = "";
-
-        this.grid = new Array(this.rows);
-
-        this.nextGrid = new Array(this.rows);
-
-        this.createTable();
-        this.initializeGrids();
-        this.resetGrids();
       }
     }
   }
@@ -247,6 +304,7 @@ export class Game {
   }
 
   startButtonHandler(e: HTMLElement) {
+    this.clearButton.innerHTML = "Обновить";
     if (this.gameCondtition === true) {
       if (this.playing) {
         this.playing = false;
@@ -255,21 +313,6 @@ export class Game {
       } else {
         this.playing = true;
         e.innerHTML = "Пауза";
-
-        const speedSelect = document.getElementById(
-          "speed"
-        ) as HTMLInputElement;
-        const speedValue = speedSelect.value;
-        if (speedValue === "x1") {
-          this.reproductionTime = 1000;
-        }
-        if (speedValue === "x2") {
-          this.reproductionTime = 500;
-        }
-        if (speedValue === "x4") {
-          this.reproductionTime = 250;
-        }
-
         this.play(this.grid);
       }
     }
@@ -299,8 +342,8 @@ export class Game {
     if (arr.length === 0) {
       this.gameCondtition = false;
       this.playing = false;
-      const startButton = document.getElementById("start") as HTMLElement;
-      startButton.innerHTML = "Старт";
+      // const startButton = document.getElementById("start") as HTMLElement;
+      this.startButton.innerHTML = "Старт";
       // alert("Игра завершена!");
     }
   }
