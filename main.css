@@ -1,0 +1,2 @@
+body{background-color:#f5f5f5;padding:20px}#gridContainer{padding-bottom:10px;padding-top:10px}table{background-color:#67b06c;border:2px solid #cc4774;border-spacing:0}td{border:1px solid #f1f5da;border-radius:3px;height:15px;width:15px}span{color:#222}#clear,#random,#start{background:linear-gradient(to bottom right,#c5dec6,#67b06c);border:none;border-radius:0;padding:1em}td.dead{background-color:transparent}td.live{background-color:#cc4774}td.live,td.pre{border-radius:10px}td.pre{background-color:#131da5}#controls{display:inline}
+/*# sourceMappingURL=main.css.map*/
