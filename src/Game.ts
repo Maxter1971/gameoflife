@@ -24,7 +24,7 @@ interface IGame {
   setupControlButtons: () => void;
   randomButtonHandler: () => void;
   clearButtonHandler: () => void;
-  speedHandler: (value: EventTarget) => void;
+  speedHandler: (e: HTMLSelectElement) => void;
   startButtonHandler: (e: HTMLElement) => void;
   play: (grid: number[][]) => void;
   computeNextGen: () => void;
@@ -32,7 +32,7 @@ interface IGame {
   countNeighbors(col: number, row: number): number;
 }
 
-export class Game {
+export class Game implements IGame {
   rows = 50;
 
   cols = 50;
